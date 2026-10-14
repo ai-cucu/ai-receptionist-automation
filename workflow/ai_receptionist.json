@@ -1,0 +1,778 @@
+{
+  "name": "AI_Receptionist copy(for saving purpose only)",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -688,
+        384
+      ],
+      "id": "20c236e2-95b2-4938-921f-a0a590153c28",
+      "name": "When chat message received",
+      "webhookId": "bac4add2-2aa2-42dd-a13c-8bb2a3e37187"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a friendly AI Receptionist.\n\nCollect the following details:\n\n1. Full Name\n2. Email Address\n3. Phone Number\n4. Reason for Contact\n\nIMPORTANT:\n\n- Store and remember all information provided by the user.\n- Never ask again for information that has already been collected.\n- Ask only for the next missing detail.\n- Follow this order:\n  Name → Email → Phone Number → Reason\n\nExample:\n\nIf name is collected:\nAsk for email.\n\nIf name and email are collected:\nAsk for phone number.\n\nIf name, email and phone are collected:\nAsk for reason.\n\nWhen all four details are collected, return ONLY this JSON:\n\n{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"phone\": \"\",\n  \"reason\": \"\"\n}\n\nDo not ask any more questions after returning the JSON.\nDo not include any explanation or thank-you message."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -464,
+        384
+      ],
+      "id": "364b9431-8097-48bc-8e2e-fe56abd00b03",
+      "name": "AI Receptionist"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -464,
+        592
+      ],
+      "id": "30b9d665-3f52-47cb-8a34-26a28e15957a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -368,
+        736
+      ],
+      "id": "464fd435-fc02-42b1-a798-0e134c078427",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json.output).reason }}",
+                    "rightValue": "sales",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d5dad658-7fd4-4654-8d93-8b3c8c5decec"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "10576954-6567-418d-9f2b-3f13264a38d5",
+                    "leftValue": "={{ JSON.parse($json.output).reason }}",
+                    "rightValue": "support",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "08092d09-a5b7-4284-ad3f-5f5800ab65da",
+                    "leftValue": "={{ JSON.parse($json.output).reason }}",
+                    "rightValue": "career",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "13eb7e73-d5e9-409d-8a16-305bc6f71039",
+                    "leftValue": "={{ JSON.parse($json.output).reason }}",
+                    "rightValue": "general",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        352
+      ],
+      "id": "d977ea76-747b-49e7-9bec-750e3a07cbbe",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{$json.output}}",
+        "options": {
+          "systemMessage": "You are a Sales Representative.\n\nHelp customers with:\n\n- Product information\n- Pricing\n- Quotations\n- Demos\n- Business inquiries\n\nCollect:\n- Name\n- Company\n- Email\n- Requirement\n\nRespond professionally and politely."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "dbcf4c92-776d-4fd8-b243-75751bcc545f",
+      "name": "Sales Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -64,
+        16
+      ],
+      "id": "0bef583e-3f99-4d68-b28e-38fe61b88f1b",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        224
+      ],
+      "id": "b8e96096-af10-4315-8fdb-a231574ea1fd",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{$json.output}}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a professional HR Recruitment Assistant.\n\nYour responsibility is to help candidates with:\n\n- Job openings\n- Career opportunities\n- Internship programs\n- Recruitment queries\n- Application status questions\n\nAlways respond professionally and encourage applicants.\n\nCollect the following details:\n- Full Name\n- Email Address\n- Education\n- Years of Experience\n- Desired Position\n\nIf the candidate is interested in applying, ask them to share their resume and relevant details."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        432
+      ],
+      "id": "45e63f20-0223-4694-ac84-0c57e1989e5e",
+      "name": "Career Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        128,
+        448
+      ],
+      "id": "4a11d8e2-38b7-4d20-bd54-b7e13cb32267",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{$json.output}}",
+        "options": {
+          "systemMessage": "You are a professional Customer Support Specialist.\n\nYour responsibility is to assist customers with:\n\n- Technical issues\n- Product problems\n- Account-related concerns\n- Service complaints\n- Troubleshooting requests\n\nAlways respond politely and professionally.\n\nCollect the following details whenever required:\n- Customer Name\n- Email Address\n- Issue Description\n- Priority (Low, Medium, High)\n\nProvide clear troubleshooting steps when possible. If the issue requires further investigation, inform the customer that the support team will contact them shortly.\n``"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        144,
+        208
+      ],
+      "id": "35232b43-86ca-4c6c-af8e-229fddcf7c21",
+      "name": "Support Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When chat message received').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a professional Receptionist and Information Assistant.\n\nAnswer general questions about the company, services, office hours, contact information, and other non-specific inquiries.\n\nAlways be polite, concise, and helpful."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        96,
+        656
+      ],
+      "id": "f891ed7d-f5f1-4cd1-9416-4c76e32b4123",
+      "name": "General Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        16,
+        656
+      ],
+      "id": "ae7808e2-42f0-4b44-8e81-199f1541e6d4",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ JSON.parse($('AI Receptionist').first().json.output).email }}",
+        "subject": "Thank you for contacting our Sales Team",
+        "message": "=<p>Dear {{ JSON.parse($('AI Receptionist').first().json.output).name }},</p>\n\n<p>Thank you for your interest in our products and services.</p>\n\n<p>We have successfully received your enquiry and our sales team will connect with you shortly to discuss your requirements.</p>\n\n<h3>Enquiry Details</h3>\n\n<ul>\n<li><strong>Name:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).name }}</li>\n<li><strong>Email:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).email }}</li>\n<li><strong>Phone:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).phone }}</li>\n<li><strong>Department:</strong> Sales</li>\n</ul>\n\n<p>Our sales representative will contact you as soon as possible.</p>\n\n<p>\nRegards,<br>\nSales Team<br>\nNexora Labs\n</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        16
+      ],
+      "id": "0b4ad9e5-1581-4d74-897a-4df03c8748c6",
+      "name": "Sales gmail",
+      "webhookId": "fec69d52-f21b-4c0c-ac8a-a045b039898e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "iO0zoBOwf8Oy6hdG",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ JSON.parse($('AI Receptionist').first().json.output).email }}",
+        "subject": "New Support Ticket",
+        "message": "=<p>Dear {{ JSON.parse($('AI Receptionist').first().json.output).name }},</p>\n\n<p>Thank you for contacting our support team.</p>\n\n<p>We have successfully received your request and our team will review it shortly.</p>\n\n<h3>Request Details</h3>\n\n<ul>\n<li><strong>Name:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).name }}</li>\n<li><strong>Email:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).email }}</li>\n<li><strong>Phone:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).phone }}</li>\n<li><strong>Department:</strong> Support</li>\n</ul>\n\n<p>A support representative will contact you if additional information is required.</p>\n\n<p>\nRegards,<br>\nSupport Team<br>\nNexora Labs\n</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        208
+      ],
+      "id": "bd9ad6ac-97aa-4fbf-bfe5-b3a488b57293",
+      "name": "Support gmail",
+      "webhookId": "567464c3-9c60-40fa-b40a-015eca531d39",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "iO0zoBOwf8Oy6hdG",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ JSON.parse($('AI Receptionist').first().json.output).email }}",
+        "subject": "New Job Application",
+        "message": "=<p>Dear {{ JSON.parse($('AI Receptionist').first().json.output).name }},</p>\n\n<p>Thank you for your interest in career opportunities at Nexora Labs.</p>\n\n<p>We have successfully received your details. Our recruitment team will review your profile and contact you if your qualifications match our current requirements.</p>\n\n<h3>Application Details</h3>\n\n<ul>\n<li><strong>Name:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).name }}</li>\n<li><strong>Email:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).email }}</li>\n<li><strong>Phone:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).phone }}</li>\n<li><strong>Department:</strong> Career</li>\n</ul>\n\n<p>We appreciate your interest in joining our team and wish you the very best.</p>\n\n<p>\nRegards,<br>\nRecruitment Team<br>\nNexora Labs\n</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        576,
+        432
+      ],
+      "id": "827bd923-d091-4be9-93a0-6bd8a25e1251",
+      "name": "Career gmail",
+      "webhookId": "6321c784-1dd3-4944-b6da-270f743a3879",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "iO0zoBOwf8Oy6hdG",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ JSON.parse($('AI Receptionist').first().json.output).email }}",
+        "subject": "=New General Inquiry",
+        "message": "=<p>Dear {{ JSON.parse($('AI Receptionist').first().json.output).name }},</p>\n\n<p>Thank you for reaching out to Nexora Labs.</p>\n\n<p>We have received your enquiry and appreciate your interest in connecting with us.</p>\n\n<h3>Contact Details</h3>\n\n<ul>\n<li><strong>Name:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).name }}</li>\n<li><strong>Email:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).email }}</li>\n<li><strong>Phone:</strong> {{ JSON.parse($('AI Receptionist').first().json.output).phone }}</li>\n<li><strong>Department:</strong> General Enquiry</li>\n</ul>\n\n<p>Our team will review your request and get back to you if further assistance is required.</p>\n\n<p>\nRegards,<br>\nCustomer Success Team<br>\nNexora Labs\n</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        656
+      ],
+      "id": "c6077fdd-53a3-49a9-bce0-20180568eb51",
+      "name": "General gmail",
+      "webhookId": "c22e4b22-2061-4ae9-b066-19980ab99326",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "iO0zoBOwf8Oy6hdG",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1QxgaYkL98vGIIcxJboCnC9NATI-tPAUF7TOtxAKnjGg",
+          "mode": "list",
+          "cachedResultName": "AI_Receptionist_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QxgaYkL98vGIIcxJboCnC9NATI-tPAUF7TOtxAKnjGg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QxgaYkL98vGIIcxJboCnC9NATI-tPAUF7TOtxAKnjGg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "Department": "={{ JSON.parse($('AI Receptionist').first().json.output).reason }}",
+            "Message": "N/A",
+            "Name": "={{ JSON.parse($('AI Receptionist').first().json.output).name }}",
+            "Email": "={{ JSON.parse($('AI Receptionist').first().json.output).email }}",
+            "Phone No": "={{ JSON.parse($('AI Receptionist').first().json.output).phone }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone No",
+              "displayName": "Phone No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Department",
+              "displayName": "Department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1184,
+        160
+      ],
+      "id": "8d388e44-b7f3-4a7c-9afe-42b1650746d5",
+      "name": "AI_Receptionist_Log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Hms4m6tOQv759hg9",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Receptionist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Receptionist",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Receptionist",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Receptionist": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Sales Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Support Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Career Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "General Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sales Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Support Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Career Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "General Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sales Agent": {
+      "main": [
+        [
+          {
+            "node": "Sales gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Support Agent": {
+      "main": [
+        [
+          {
+            "node": "Support gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Career Agent": {
+      "main": [
+        [
+          {
+            "node": "Career gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "General Agent": {
+      "main": [
+        [
+          {
+            "node": "General gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sales gmail": {
+      "main": [
+        [
+          {
+            "node": "AI_Receptionist_Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Support gmail": {
+      "main": [
+        [
+          {
+            "node": "AI_Receptionist_Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Career gmail": {
+      "main": [
+        [
+          {
+            "node": "AI_Receptionist_Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "General gmail": {
+      "main": [
+        [
+          {
+            "node": "AI_Receptionist_Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d4753c1b-da36-48a0-85a9-4f6bb724cc1b",
+  "meta": {
+    "instanceId": "09d3ae78c6e835c9e9efcc6baa61b4e772a62671ac36167b2f8dbecf17450d00"
+  },
+  "nodeGroups": [],
+  "id": "Ikho3U38rVW3qbb0",
+  "tags": []
+}
